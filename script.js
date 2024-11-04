@@ -10,11 +10,11 @@ let data = {
         "Jueves": "9:00 - 17:00",
         "Viernes": "9:00 - 17:00",
         "Sábado": "10:00 - 15:00",
-        "Domingo": "Cerrado"
+        "Domingo": "10:00 - 15:00"
     }
 };
 
-
+// DOM Elements
 const personInput = document.getElementById('personInput');
 const localInput = document.getElementById('localInput');
 const personSelect = document.getElementById('personSelect');
@@ -25,6 +25,9 @@ const scheduleInputs = document.getElementById('scheduleInputs');
 // Initialize data
 function loadData() {
     const savedData = localStorage.getItem('schedulerData');
+    if (savedData) {
+        data = JSON.parse(savedData);
+    } else {
         data = {
             personas: ["Esther", "Edinson", "Ines", "Yissell", "Lisbeth", "Anderson", 
                       "Ma Jose", "Yujhra", "Danayk", "Maria Victoria", "Fabiola", "Jimmy", "Graisbi", 
@@ -38,10 +41,11 @@ function loadData() {
                 "Jueves": "9:00 - 17:00",
                 "Viernes": "9:00 - 17:00",
                 "Sábado": "10:00 - 15:00",
-                "Domingo": "Cerrado"
+                "Domingo": "10:00 - 15:00"
             }
         };
         saveData();
+    }
     updateUI();
     generateScheduleInputs();
 }
