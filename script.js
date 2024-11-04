@@ -2,7 +2,16 @@
 let data = {
     personas: [],
     locales: [],
-    dias: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    dias: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"],
+    horarios: {
+        "Lunes": "9:00 - 17:00",
+        "Martes": "9:00 - 17:00",
+        "Miércoles": "9:00 - 17:00",
+        "Jueves": "9:00 - 17:00",
+        "Viernes": "9:00 - 17:00",
+        "Sábado": "10:00 - 15:00",
+        "Domingo": "Cerrado"
+    }
 };
 
 // DOM Elements
@@ -11,46 +20,68 @@ const localInput = document.getElementById('localInput');
 const personSelect = document.getElementById('personSelect');
 const localSelect = document.getElementById('localSelect');
 const scheduleContainer = document.getElementById('scheduleContainer');
+const scheduleInputs = document.getElementById('scheduleInputs');
 
 // Initialize data
 function loadData() {
     const savedData = localStorage.getItem('schedulerData');
-    if (savedData) {
-        data = JSON.parse(savedData);
-    } else {
         data = {
             personas: ["Esther", "Edinson", "Ines", "Yissell", "Lisbeth", "Anderson", 
                       "Ma Jose", "Yujhra", "Danayk", "Maria Victoria", "Fabiola", "Jimmy", "Graisbi", 
                       "Gerardo", "Cammy", "Johsmar"],
             locales: ["Corporacion 3150", "Grupo 212 Steak", "Inversiones Pad"],
-            dias: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+            dias: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"],
+            horarios: {
+                "Lunes": "9:00 - 17:00",
+                "Martes": "9:00 - 17:00",
+                "Miércoles": "9:00 - 17:00",
+                "Jueves": "9:00 - 17:00",
+                "Viernes": "9:00 - 17:00",
+                "Sábado": "10:00 - 15:00",
+                "Domingo": "Cerrado"
+            }
         };
         saveData();
-    }
     updateUI();
+    generateScheduleInputs();
 }
 
 function generateNewSchedule() {
     const assignments = generateAssignments();
     generateTables(assignments);
-    // Remove saveData() from here as it's not necessary to save every time we generate a new schedule
 }
 
 // Save data to localStorage
 function saveData() {
-    const assignments = generateAssignments();
-    const dataToSave = {
-        ...data,
-        assignments: assignments
-    };
-    localStorage.setItem('schedulerData', JSON.stringify(dataToSave));
+    localStorage.setItem('schedulerData', JSON.stringify(data));
     updateUI();
+}
+
+function generateScheduleInputs() {
+    scheduleInputs.innerHTML = '';
+    data.dias.forEach(dia => {
+        const inputGroup = document.createElement('div');
+        inputGroup.className = 'schedule-input';
+        inputGroup.innerHTML = `
+            <label for="schedule-${dia}">${dia}:</label>
+            <input type="text" id="schedule-${dia}" value="${data.horarios[dia]}">
+        `;
+        scheduleInputs.appendChild(inputGroup);
+    });
+}
+
+function updateSchedules() {
+    data.dias.forEach(dia => {
+        const input = document.getElementById(`schedule-${dia}`);
+        data.horarios[dia] = input.value;
+    });
+    saveData();
+    generateNewSchedule();
 }
 
 // Update UI elements
 function updateUI() {
     updateSelects();
-    // Eliminar la llamada a generateTables() de aquí
 }
 
 // Update select dropdowns
@@ -85,7 +116,7 @@ function generateTables(assignments) {
         
         // Create header row
         const headerRow = document.createElement('tr');
-        headerRow.innerHTML = '<th>Día</th>';
+        headerRow.innerHTML = '<th>Día</th><th>Horario</th>';
         data.locales.forEach(local => {
             const th = document.createElement('th');
             th.textContent = local;
@@ -96,7 +127,7 @@ function generateTables(assignments) {
         // Create body rows
         data.dias.forEach((dia, diaIndex) => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${dia}</td>`;
+            tr.innerHTML = `<td>${dia}</td><td>${data.horarios[dia]}</td>`;
             
             data.locales.forEach((_, localIndex) => {
                 const td = document.createElement('td');
@@ -113,8 +144,6 @@ function generateTables(assignments) {
         scheduleContainer.appendChild(table);
     }
 }
-
-
 
 // Generate random assignments with better distribution for a month
 function generateAssignments() {
@@ -208,7 +237,7 @@ function exportToExcel() {
         
         // Set column widths
         const columnWidths = [];
-        for (let i = 0; i < data.locales.length + 1; i++) {
+        for (let i = 0; i < data.locales.length + 2; i++) {
             columnWidths.push({ wch: 20 });
         }
         ws['!cols'] = columnWidths;
@@ -225,6 +254,5 @@ function exportToExcel() {
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
     loadData();
-    // Generate initial schedule
     generateNewSchedule();
 });

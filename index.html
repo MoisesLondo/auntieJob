@@ -27,20 +27,17 @@
                 </select>
                 <button onclick="removePerson()" class="btn btn-danger">Eliminar Persona</button>
             </div>
-            <div class="schedule-inputs">
-                <h3>Horarios por día</h3>
-                <div class="input-group" id="scheduleInputs">
-                    <input type="text" id="scheduleInput" placeholder="Horario por defecto (ej. 9:00 - 17:00)">
-                </div>
-                <button onclick="updateSchedules()" class="btn">Actualizar Horarios</button>
-            </div>
-
-
             <div class="input-group">
                 <select id="localSelect">
                     <option value="">Seleccionar local para eliminar</option>
                 </select>
                 <button onclick="removeLocal()" class="btn btn-danger">Eliminar Local</button>
+            </div>
+            <div class="schedule-inputs">
+                <h3>Horarios por día</h3>
+                <div class="input-group" id="scheduleInputs">
+                </div>
+                <button onclick="updateSchedules()" class="btn">Actualizar Horarios</button>
             </div>
             <button onclick="generateNewSchedule()" class="btn btn-primary">Generar Nuevo Horario</button>
             <button onclick="exportToExcel()" class="btn btn-export">Exportar a Excel</button>
