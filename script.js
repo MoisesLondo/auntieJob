@@ -14,7 +14,7 @@ let data = {
     }
 };
 
-// DOM Elements
+
 const personInput = document.getElementById('personInput');
 const localInput = document.getElementById('localInput');
 const personSelect = document.getElementById('personSelect');
