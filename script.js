@@ -16,6 +16,8 @@ const scheduleContainer = document.getElementById('scheduleContainer');
 function loadData() {
     const savedData = localStorage.getItem('schedulerData');
     if (savedData) {
+        data = JSON.parse(savedData);
+    } else {
         data = {
             personas: ["Esther", "Edinson", "Ines", "Yissell", "Lisbeth", "Anderson", 
                       "Ma Jose", "Yujhra", "Danayk", "Maria Victoria", "Fabiola", "Jimmy", "Graisbi", 
@@ -28,16 +30,27 @@ function loadData() {
     updateUI();
 }
 
+function generateNewSchedule() {
+    const assignments = generateAssignments();
+    generateTables(assignments);
+    // Remove saveData() from here as it's not necessary to save every time we generate a new schedule
+}
+
 // Save data to localStorage
 function saveData() {
-    localStorage.setItem('schedulerData', JSON.stringify(data));
+    const assignments = generateAssignments();
+    const dataToSave = {
+        ...data,
+        assignments: assignments
+    };
+    localStorage.setItem('schedulerData', JSON.stringify(dataToSave));
     updateUI();
 }
 
 // Update UI elements
 function updateUI() {
     updateSelects();
-    generateTables();
+    // Eliminar la llamada a generateTables() de aquí
 }
 
 // Update select dropdowns
@@ -62,9 +75,8 @@ function updateSelects() {
 }
 
 // Generate schedule tables for a month
-function generateTables() {
+function generateTables(assignments) {
     scheduleContainer.innerHTML = '';
-    const assignments = generateAssignments();
 
     for (let week = 0; week < 4; week++) {
         const table = document.createElement('table');
@@ -101,6 +113,8 @@ function generateTables() {
         scheduleContainer.appendChild(table);
     }
 }
+
+
 
 // Generate random assignments with better distribution for a month
 function generateAssignments() {
@@ -209,4 +223,8 @@ function exportToExcel() {
 }
 
 // Initialize on load
-document.addEventListener('DOMContentLoaded', loadData);
+document.addEventListener('DOMContentLoaded', () => {
+    loadData();
+    // Generate initial schedule
+    generateNewSchedule();
+});
