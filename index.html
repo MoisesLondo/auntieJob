@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Scheduler</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema de Asignación de Horarios</h1>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <input type="text" id="personInput" placeholder="Nombre de la persona">
+                <button onclick="addPerson()" class="btn">Agregar Persona</button>
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="localInput" placeholder="Nombre del local">
+                <button onclick="addLocal()" class="btn">Agregar Local</button>
+            </div>
+
+            <div class="input-group">
+                <select id="personSelect">
+                    <option value="">Seleccionar persona para eliminar</option>
+                </select>
+                <button onclick="removePerson()" class="btn btn-danger">Eliminar Persona</button>
+            </div>
+
+            <div class="input-group">
+                <select id="localSelect">
+                    <option value="">Seleccionar local para eliminar</option>
+                </select>
+                <button onclick="removeLocal()" class="btn btn-danger">Eliminar Local</button>
+            </div>
+
+            <button onclick="exportToExcel()" class="btn btn-export">Exportar a Excel</button>
+        </div>
+
+        <div class="table-container">
+            <table id="scheduleTable">
+                <thead>
+                    <tr>
+                        <th>Día</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
