@@ -14,6 +14,9 @@ let data = {
     }
 };
 
+// Global variable to track assignments
+let assignmentTracker = {};
+
 // DOM Elements
 const personInput = document.getElementById('personInput');
 const localInput = document.getElementById('localInput');
@@ -24,35 +27,49 @@ const scheduleInputs = document.getElementById('scheduleInputs');
 
 // Initialize data
 function loadData() {
-    const savedData = localStorage.getItem('schedulerData');
-    if (savedData) {
-        data = JSON.parse(savedData);
-    } else {
-        data = {
-            personas: ["Esther", "Edinson", "Ines", "Yissell", "Lisbeth", "Anderson", 
-                      "Ma Jose", "Yujhra", "Danayk", "Maria Victoria", "Fabiola", "Jimmy", "Graisbi", 
-                      "Gerardo", "Cammy", "Johsmar"],
-            locales: ["Corporacion 3150", "Grupo 212 Steak", "Inversiones Pad"],
-            dias: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"],
-            horarios: {
-                "Lunes": "9:00 - 17:00",
-                "Martes": "9:00 - 17:00",
-                "Miércoles": "9:00 - 17:00",
-                "Jueves": "9:00 - 17:00",
-                "Viernes": "9:00 - 17:00",
-                "Sábado": "10:00 - 15:00",
-                "Domingo": "10:00 - 15:00"
-            }
-        };
-        saveData();
-    }
+    console.log('Loading data');
+    data = {
+        personas: ["Esther", "Edinson", "Ines", "Yissell", "Lisbeth", "Anderson", 
+                  "Ma Jose", "Yujhra", "Danayk", "Maria Victoria", "Fabiola", "Jimmy", "Graisbi", 
+                  "Gerardo", "Cammy", "Johsmar"],
+        locales: ["Corporacion 3150", "Grupo 212 Steak", "Inversiones Pad"],
+        dias: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"],
+        horarios: {
+            "Lunes": "9:00 - 17:00",
+            "Martes": "9:00 - 17:00",
+            "Miércoles": "9:00 - 17:00",
+            "Jueves": "9:00 - 17:00",
+            "Viernes": "9:00 - 17:00",
+            "Sábado": "10:00 - 15:00",
+            "Domingo": "10:00 - 15:00"
+        }
+    };
+    saveData();
+    initializeAssignmentTracker();
     updateUI();
     generateScheduleInputs();
+    generateNewSchedule();
+}
+
+function initializeAssignmentTracker() {
+    assignmentTracker = {};
+    data.personas.forEach(person => {
+        assignmentTracker[person] = {
+            lastAssignedDay: -2,
+            lastAssignedWeekend: -1,
+            totalAssignments: 0
+        };
+    });
 }
 
 function generateNewSchedule() {
-    const assignments = generateAssignments();
-    generateTables(assignments);
+    try {
+        const assignments = generateAssignments();
+        console.log('Generated assignments:', assignments);
+        generateTables(assignments);
+    } catch (error) {
+        console.error('Error generating new schedule:', error);
+    }
 }
 
 // Save data to localStorage
@@ -62,6 +79,7 @@ function saveData() {
 }
 
 function generateScheduleInputs() {
+    console.log('Generating schedule inputs');
     scheduleInputs.innerHTML = '';
     data.dias.forEach(dia => {
         const inputGroup = document.createElement('div');
@@ -111,6 +129,7 @@ function updateSelects() {
 
 // Generate schedule tables for a month
 function generateTables(assignments) {
+    console.log('Generating tables with assignments:', assignments);
     scheduleContainer.innerHTML = '';
 
     for (let week = 0; week < 4; week++) {
@@ -154,10 +173,7 @@ function generateAssignments() {
     if (!data.personas.length || !data.locales.length) return [];
 
     const monthAssignments = [];
-    const personAssignments = {};
-    data.personas.forEach(person => {
-        personAssignments[person] = 0;
-    });
+    initializeAssignmentTracker();
 
     for (let week = 0; week < 4; week++) {
         const weekAssignments = Array(data.locales.length)
@@ -168,21 +184,39 @@ function generateAssignments() {
         const shiftsPerPerson = Math.ceil(totalShifts / data.personas.length);
         const peoplePerShift = Math.ceil(data.personas.length / totalShifts);
 
-        // Shuffle the order of days for each week
-        const shuffledDays = [...Array(data.dias.length).keys()].sort(() => Math.random() - 0.5);
-
         // Distribute people across all shifts for the week
-        for (let diaIndex = 0; diaIndex < data.dias.length; diaIndex++) {
-            const dia = shuffledDays[diaIndex];
+        for (let dia = 0; dia < data.dias.length; dia++) {
+            const isWeekend = dia === 5 || dia === 6; // Assuming 5 is Saturday and 6 is Sunday
+
             for (let local = 0; local < data.locales.length; local++) {
-                const availablePeople = data.personas
-                    .filter(person => personAssignments[person] < shiftsPerPerson * 4)
-                    .sort((a, b) => personAssignments[a] - personAssignments[b]);
+                let availablePeople = data.personas
+                    .filter(person => {
+                        const tracker = assignmentTracker[person];
+                        const notConsecutiveDay = (week * 7 + dia) - tracker.lastAssignedDay > 1 || tracker.lastAssignedDay === -2;
+                        const notConsecutiveWeekend = !isWeekend || week - tracker.lastAssignedWeekend > 1 || tracker.lastAssignedWeekend === -1;
+                        return tracker.totalAssignments < shiftsPerPerson * 4 && notConsecutiveDay && notConsecutiveWeekend;
+                    })
+                    .sort((a, b) => assignmentTracker[a].totalAssignments - assignmentTracker[b].totalAssignments);
+
+                // If no one is available, relax the consecutive day constraint
+                if (availablePeople.length === 0) {
+                    availablePeople = data.personas
+                        .filter(person => {
+                            const tracker = assignmentTracker[person];
+                            const notConsecutiveWeekend = !isWeekend || week - tracker.lastAssignedWeekend > 1 || tracker.lastAssignedWeekend === -1;
+                            return tracker.totalAssignments < shiftsPerPerson * 4 && notConsecutiveWeekend;
+                        })
+                        .sort((a, b) => assignmentTracker[a].totalAssignments - assignmentTracker[b].totalAssignments);
+                }
 
                 for (let i = 0; i < peoplePerShift && i < availablePeople.length; i++) {
                     const person = availablePeople[i];
                     weekAssignments[local][dia].push(person);
-                    personAssignments[person]++;
+                    assignmentTracker[person].lastAssignedDay = week * 7 + dia;
+                    assignmentTracker[person].totalAssignments++;
+                    if (isWeekend) {
+                        assignmentTracker[person].lastAssignedWeekend = week;
+                    }
                 }
             }
         }
@@ -257,6 +291,6 @@ function exportToExcel() {
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM fully loaded');
     loadData();
-    generateNewSchedule();
 });
